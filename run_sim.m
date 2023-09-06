@@ -3,7 +3,7 @@ clear
 close all
 
 %% Load Data
-addpath('../aero_gen_library/')
+addpath('../aero_gen_library_sp/')
 
 load("state1.mat");
 load("state2.mat");
