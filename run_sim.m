@@ -8,10 +8,6 @@ addpath('../aero_gen_library_sp/')
 load("state1.mat");
 load("wing1.mat");
 
-%% Creat Target Flight Path
-
-% [flight_path_1, ref1] = ellipse_flight_path(138, 58, 58, deg2rad(10.8), deg2rad(-3), deg2rad(0), deg2rad(0), 200, 1);
-
 %% System Parameters
 viz_on = 1;
 ac1_forces = 1;
@@ -22,7 +18,6 @@ rho = 1.225;
 k_line = 100;
 d =150;
 WindVelocity = [12, 0, 0];%[12, 0, 0]
-
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -87,26 +82,9 @@ name = 'test';
 ac1_state = [InitPosition1, InitVelocity1, InitEuler1, InitPQR1];
 ctr1 = [0, 0, 0]; thr = [0]; pod_ctr = [0, 0];
 
-%% Generate Jacobian Function
-addpath('../Adigator');
-% need to run startupadigator to create new derivitive functions
-% startupadigator;
-% 
-% x = adigatorCreateDerivInput([12, 1], 'x');
-% u = adigatorCreateAuxInput([4 1]);
-% adigator('get_full_state', {x,u, param'}, 'deriv2');
-% 
-% x = adigatorCreateDerivInput([4, 1], 'x');
-% u = adigatorCreateAuxInput([12 1]);
-% adigator('get_full_state', {u, x, param'}, 'deriv_ctr');
-
-%% Create MPC Object
-tic;
-nlobj = generate_multi_mpc(ac1_state, [ctr1,  thr]', param);
-
 %% Run Sim
-stop_time = 10;
-time_step = 0.001;
+tic
+stop_time = 100;
 
 out = sim('aero_gen.slx');
 toc
