@@ -22,7 +22,7 @@ WindVelocity = [12, 0, 0];%[12, 0, 0]
 %% Aircraft Parameters
 roll_moment_1 = 0;
 pitch_moment_1 = 0;
-yaw_moment_1 = 0.06;%+
+yaw_moment_1 = 0.0;%+
 cl_1 = 6.2;
 
 roll_c_1 = deg2rad(12.6);%-5
