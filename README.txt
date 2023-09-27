@@ -16,8 +16,8 @@ Linear and Angular Velocities: Description of the aircraft's translational and r
 
 2. Elastic Tether
 The aircraft is tethered to the ground through an elastic tether. Key characteristics of the tether include:
-
 No Modeled Mass or Drag: The tether is simplified in the simulation, assuming it has no mass or aerodynamic drag, allowing focus on the aircraft's behavior.
+
 3. Elastic Stabilizers
 To control the aircraft's attitude relative to the tether axis, elastic stabilizers are integrated into the simulation. These stabilizers function similarly to bridle lines on a traditional kite and are responsible for maintaining the aircraft in a specific attitude relative to the tether axis.
 
@@ -36,7 +36,7 @@ Alternatively, the simulation permits adjustments to the attitude of the aircraf
 How to Use
 1. Clone or download this repository to your local machine.
 2. Open the MATLAB/Simulink project file to access the simulation model.
-   Important: Ensure you have MATLAB 2021b or a compatible version installed on your system.
+   Important: Ensure you have MATLAB 2021b.
 3. To initialize the model, run the run_sim.m script. This script sets up the necessary initial conditions and system parameters for the simulation.
 4. After initializing the model, you can choose one of the following methods to begin simulating the dynamic model:
 	a. Using Simulink:
