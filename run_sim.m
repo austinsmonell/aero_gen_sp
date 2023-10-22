@@ -16,19 +16,18 @@ ac1_moments = 1;
 gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
-d =150;
-WindVelocity = [12, 0, 0];%[12, 0, 0]
+d =100;
+WindVelocity = [4, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
 pitch_moment_1 = 0;
-yaw_moment_1 = 0.0;%+
-cl_1 = 6.2;
+yaw_moment_1 = 0.00;%+
 
-roll_c_1 = deg2rad(12.6);%-5
-pitch_c = deg2rad(-10);%-18
-k_roll = 10;%100
-k_pitch = 1000;%1000
+roll_c_1 = deg2rad(0);%-5
+pitch_c = deg2rad(8);%-18
+k_roll = 100;%100
+k_pitch = 100;%1000
 
 %% Constants Vector
 coeff = cell2mat(wing1.Coefficients.Values);
@@ -42,25 +41,40 @@ param = [state1.Mass, rho, wing1.ReferenceArea, wing1.ReferenceLength, wing1.Ref
 %% Initial Conditions
 % 
 % 
-% InitPosition1 = [138, 0.01, 0.01];
-% InitVelocity1 = [20, 0.01, 0.01];
-% InitAcc1 = [0, 0, 0];
-% InitEuler1 = [0, 0, 0]*pi/180;
-% InitPQR1 = [0, 0, 0];
-% InitPQRDot1 = [0, 0, 0];
+InitPosition1 = [0, 0.0001, -100]';
+InitVelocity1 = [0, 0.0001, 0.0001]';
+InitAcc1 = [0, 0, 0]';
+InitEuler1 = [0, 0, 179.99]'*pi/180;
+InitPQR1 = [0, 0, 0]';
+InitPQRDot1 = [0, 0, 0]';
 % 
 
 %% Load Initial Conditions
+% 
+% load("Flight Configurations\IC_Saves\150m_SS_1.mat");
+% 
+% InitPosition1 = IC_ss(1:3);
+% InitVelocity1 = IC_ss(4:6);
+% InitAcc1 = IC_ss(7:9);
+% InitEuler1 = IC_ss(10:12);
+% InitPQR1 = IC_ss(13:15);
+% InitPQRDot1 = IC_ss(16:18);
 
-load("Flight Configurations\IC_Saves\150m_SS_1.mat");
+%% Static Trim
+x0 = [InitPosition1; InitVelocity1; InitEuler1; InitPQR1];
+u0 = zeros(3, 1);
+x_trim = x0;
+u_trim = u0;
 
-InitPosition1 = IC_ss(1:3)';
-InitVelocity1 = IC_ss(4:6)';
-InitAcc1 = IC_ss(7:9)';
-InitEuler1 = IC_ss(10:12)';
-InitPQR1 = IC_ss(13:15)';
-InitPQRDot1 = IC_ss(16:18)';
+targets = [0];
+[z_trim, f0] = static_trim_full(x0, u0, param, targets);
+x_trim = [z_trim(1); x0(2); z_trim(2);x0(4:7); z_trim(3); x0(9:12)];
+u_trim = [u0(1); z_trim(4); u0(3)];
 
+InitPosition1 = x_trim(1:3);
+InitVelocity1 = x_trim(4:6);
+InitEuler1 = x_trim(7:9);
+InitPQR1 = x_trim(10:12);
 
 %% Save IC
 % name = 'IC_test';
@@ -78,14 +92,9 @@ name = 'test';
 
 %save 'Flight Configurations/test.mat' flight_config;
 
-%% Create IC
-ac1_state = [InitPosition1, InitVelocity1, InitEuler1, InitPQR1];
-ctr1 = [0, 0, 0]; thr = [0]; pod_ctr = [0, 0];
-
 %% Run Sim
 tic
-stop_time = 100;
-
+stop_time = 10;
 out = sim('aero_gen.slx');
 toc
 
@@ -96,9 +105,8 @@ y = out.state.signals.values;
 %3d plot flightpath
 figure(1);
 hold on;
-plot3(y(:, 1), y(:, 2), y(:, 3));
+plot3(y(:, 1), y(:, 2), -y(:, 3));
 grid on;
-axis equal;
 xlabel('X [m]');
 ylabel('Y [m]');
 zlabel('Z [m]');
@@ -113,27 +121,25 @@ ylabel('Radius [m]');
 title('Radius vs Time');
 
 %% Test Get State Function
-% ac1_state = out.state.signals.values(1, 1:18);
-coeff = cell2mat(wing1.Coefficients.Values);
-coeff_ctr = cell2mat(wing1.Surfaces.Coefficients.Values);
+
 tic;
-[t, y] = run_sim_states(stop_time, ac1_state, [ctr1, thr]', param);
+[t, y_out] = run_sim_states(stop_time, x_trim, u_trim, param);
 toc
 
 %Plot from sim states
 %3d plot
 figure(1);
 hold on;
-plot3(y(:, 1), y(:, 2), y(:, 3));
+plot3(y_out(:, 1), y_out(:, 2), -y_out(:, 3));
 grid on;
-axis equal;
 xlabel('X [m]');
 ylabel('Y [m]');
 zlabel('Z [m]');
 title('Flight Path [1 Cycle]')
 %radius
 figure(4);
-plot(t, sqrt(y(:, 1).^2 + y(:, 2).^2 + y(:, 3).^2));
+plot(t, sqrt(y_out(:, 1).^2 + y_out(:, 2).^2 + y_out(:, 3).^2));
 xlabel('Time [s]');
 ylabel('Radius [m]');
 title('Radius vs Time');
+

@@ -17,7 +17,8 @@ gravity = [0 , 0, 9.81];
 rho = 1.14;
 k_line = 100;
 d =100;
-WindVelocity = [6, 0, 0];%[12, 0, 0]
+WindVelocity = [3, 0, 0];%[12, 0, 0]
+m_tether = 0.5;
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -39,8 +40,8 @@ param = [state1.Mass, rho, wing1.ReferenceArea, wing1.ReferenceLength, wing1.Ref
          coeff_ctr(4, 1), coeff_ctr(5, 2), coeff_ctr(6, 3), yaw_moment_1, pitch_c, roll_c_1]';
 
 %% Run Study
-angles = [0:5:90]';
-wing_loading = [1:5:61]';
+angles = [10:5:85]';
+wing_loading = [1:2:70]';
 [X, Y] = meshgrid(wing_loading, angles);
 Z = -20*ones(size(X));
 for i=1:size(wing_loading, 1)
@@ -49,13 +50,18 @@ for i=1:size(wing_loading, 1)
 %% Trim Targets
 param(1) = wing_loading(i)*param(3)/gravity(3);
 el_t = deg2rad(angles(j));
-az_t = deg2rad(0);
+az_t = deg2rad(1e-10);
+param(1) = param(1) + m_tether/2+sin(el_t)*m_tether/2;
 
 z_t = -sin(el_t)*d;
-x_t = sin(az_t)*d;
+y_t = sin(az_t)*d;
 
+w_0 = WindVelocity(1);
+h_0 = 10;
+h_r = 0.1;
+param(9) = ((log(-z_t/h_r)/log(h_0/h_r)))*w_0;
 %% Initial Guess
-InitPosition1 = [sqrt(d^2-x_t^2-z_t^2); x_t; z_t];
+InitPosition1 = [sqrt(d^2-y_t^2-z_t^2); y_t; z_t];
 InitVelocity1 = [0; 0; 0];
 InitEuler1 = [0; pi/8; pi];
 InitPQR1 = [0; 0; 0];
@@ -65,15 +71,21 @@ x0 = [InitPosition1; InitVelocity1; InitEuler1; InitPQR1];
 u0 = zeros(3, 1);
 
 %% Static Trim
-targets = [z_t, x_t];
+targets = [z_t, y_t];
 [z_trim, f0] = static_trim(x0, u0, param, targets);
-x_trim = z_trim(1:12);
-u_trim = z_trim(13:15);
+x_trim = [z_trim(1); x0(2); z_trim(2);x0(4:7); z_trim(3); x0(9:12)];
+u_trim = [u0(1); z_trim(4); u0(3)];
 
-if f0<1e-4
-    Z(j, i) = x_trim(8)*180/pi;
+Z(j, i) = x_trim(8)*180/pi;
+if abs(x_trim(8)) > 5
+    if j>1
+        Z(j, i) = Z(j-1, i);
+    else
+        Z(j, i) = Z(j, i-1);
+    end
 end
 
+    j
     end
     i
 end
@@ -82,14 +94,18 @@ stop_time = 10;
 tspan = [0 stop_time];
 [t, x_out] = ode45(@(t, x) get_full_state(x, u_trim, param), tspan, x_trim);
 
-%% Plot Trim
+% Plot Trim
 figure(2);
 surf(X, Y, Z);
 xlabel('WL [Pa]');
 ylabel('Elevation Angle [deg]');
 zlabel('Theta [deg]');
+title("Wing Loading Envelope ("+WindVelocity(1)+"mps Wind)")
+zlim([-2, 10]);
 cb = colorbar("westoutside");
+caxis([-2 10]);
 cb.Label.String = "Theta/AoA [deg]";
+set(gca,'Color','k')
 
 
 
@@ -130,6 +146,6 @@ InitPQR1 = x_trim(10:12);
 
 %% Set Parameters
 [state1] = set_parameters(WindVelocity,InitPosition1, InitVelocity1, InitEuler1, InitPQR1, state1);
+state1.Mass = param(1);
 
-
-out = sim('aero_gen.slx');
+% out = sim('aero_gen.slx');
