@@ -17,7 +17,7 @@ gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
 d =100;
-WindVelocity = [4, 0, 0];%[12, 0, 0]
+WindVelocity = [3.5, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -94,7 +94,7 @@ name = 'test';
 
 %% Run Sim
 tic
-stop_time = 10;
+stop_time = 30;
 out = sim('aero_gen.slx');
 toc
 
@@ -119,6 +119,14 @@ hold on;
 xlabel('Time [s]');
 ylabel('Radius [m]');
 title('Radius vs Time');
+
+%psi
+figure(5);
+plot(time, y(:, 19)*180/pi);
+hold on;
+xlabel('Time [s]');
+ylabel('Psi [def]');
+title('Psi vs Time');
 
 %% Test Get State Function
 
