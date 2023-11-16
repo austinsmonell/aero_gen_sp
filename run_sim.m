@@ -16,8 +16,8 @@ ac1_moments = 1;
 gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
-d =55;
-WindVelocity = [7, 0, 0];%[12, 0, 0]
+d =80;
+WindVelocity = [5, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -28,6 +28,10 @@ roll_c_1 = deg2rad(0);%-5
 pitch_c = deg2rad(6.3);%-18
 k_roll = 1000;%100
 k_pitch = 1000;%1000
+
+%% Control Law Parameters
+trg_el = 15;
+trg_az = 30;
 
 %% Constants Vector
 coeff = cell2mat(wing1.Coefficients.Values);
