@@ -25,13 +25,13 @@ pitch_moment_1 = 0;
 yaw_moment_1 = 0.00;%+
 
 roll_c = deg2rad(0);%-5
-pitch_c = deg2rad(6.3);%-18
-k_roll = 100;%100
+pitch_c = deg2rad(3);%-18
+k_roll = 500;%100
 k_pitch = 1000;%1000
 
 %% Control Law Parameters
-trg_el = 18;
-trg_az = 25;
+trg_el = 20;
+trg_az = 45;
 motor_kv = 30;
 motor_kt = 60/(2*pi*motor_kv);
 motor_moi = 0.01;
