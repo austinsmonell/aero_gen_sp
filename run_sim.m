@@ -34,7 +34,7 @@ trg_el = 20;
 trg_az = 45;
 motor_kv = 30;
 motor_kt = 60/(2*pi*motor_kv);
-motor_moi = 0.01;
+motor_moi = 0.0003;
 
 %% Constants Vector
 coeff = cell2mat(wing1.Coefficients.Values);
