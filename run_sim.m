@@ -17,7 +17,7 @@ gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
 d =80;
-WindVelocity = [4, 0, 0];%[12, 0, 0]
+WindVelocity = [7, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
