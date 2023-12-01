@@ -17,7 +17,7 @@ gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
 d =80;
-WindVelocity = [7, 0, 0];%[12, 0, 0]
+WindVelocity = [4, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -30,11 +30,13 @@ k_roll = 500;%100
 k_pitch = 1000;%1000
 
 %% Control Law Parameters
-trg_el = 20;
+trg_el = 30;
 trg_az = 45;
 motor_kv = 30;
 motor_kt = 60/(2*pi*motor_kv);
 motor_moi = 0.0003;
+el_bias = 0;
+az_bias = 0;
 
 %% Constants Vector
 coeff = cell2mat(wing1.Coefficients.Values);
@@ -100,61 +102,100 @@ name = 'test';
 %save 'Flight Configurations/test.mat' flight_config;
 
 %% Run Sim
-tic
-stop_time = 30;
-out = sim('aero_gen.slx');
-toc
+run_sim_on = 0;
+if run_sim_on == 1
+    tic
+    stop_time = 30;
+    out = sim('aero_gen.slx');
+    toc
+end
+
 
 %% Plot Output
-time = out.tout;
-y = out.state.signals.values;
+plot_sim_on = 0;
+if plot_sim_on == 1
+    time = out.tout;
+    y = out.state.signals.values;
+    
+    %3d plot flightpath
+    figure(1);
+    hold on;
+    plot3(y(:, 1), y(:, 2), -y(:, 3));
+    grid on;
+    xlabel('X [m]');
+    ylabel('Y [m]');
+    zlabel('Z [m]');
+    title('Flight Path [1 Cycle]')
+    
+    %radius
+    figure(4);
+    plot(time, sqrt(y(:, 1).^2 + y(:, 2).^2 + y(:, 3).^2));
+    hold on;
+    xlabel('Time [s]');
+    ylabel('Radius [m]');
+    title('Radius vs Time');
+    
+    %psi
+    figure(5);
+    plot(time, y(:, 19)*180/pi);
+    hold on;
+    xlabel('Time [s]');
+    ylabel('Psi [def]');
+    title('Psi vs Time');
+    
+    %% Test Get State Function
+    
+    tic;
+    [t, y_out] = run_sim_states(stop_time, x_trim, u_trim, param);
+    toc
+    
+    %Plot from sim states
+    %3d plot
+    figure(1);
+    hold on;
+    plot3(y_out(:, 1), y_out(:, 2), -y_out(:, 3));
+    grid on;
+    xlabel('X [m]');
+    ylabel('Y [m]');
+    zlabel('Z [m]');
+    title('Flight Path [1 Cycle]')
+    %radius
+    figure(4);
+    plot(t, sqrt(y_out(:, 1).^2 + y_out(:, 2).^2 + y_out(:, 3).^2));
+    xlabel('Time [s]');
+    ylabel('Radius [m]');
+    title('Radius vs Time');
+end
 
-%3d plot flightpath
-figure(1);
-hold on;
-plot3(y(:, 1), y(:, 2), -y(:, 3));
-grid on;
-xlabel('X [m]');
-ylabel('Y [m]');
-zlabel('Z [m]');
-title('Flight Path [1 Cycle]')
-
-%radius
-figure(4);
-plot(time, sqrt(y(:, 1).^2 + y(:, 2).^2 + y(:, 3).^2));
-hold on;
-xlabel('Time [s]');
-ylabel('Radius [m]');
-title('Radius vs Time');
-
-%psi
-figure(5);
-plot(time, y(:, 19)*180/pi);
-hold on;
-xlabel('Time [s]');
-ylabel('Psi [def]');
-title('Psi vs Time');
-
-%% Test Get State Function
-
-tic;
-[t, y_out] = run_sim_states(stop_time, x_trim, u_trim, param);
-toc
-
-%Plot from sim states
-%3d plot
-figure(1);
-hold on;
-plot3(y_out(:, 1), y_out(:, 2), -y_out(:, 3));
-grid on;
-xlabel('X [m]');
-ylabel('Y [m]');
-zlabel('Z [m]');
-title('Flight Path [1 Cycle]')
-%radius
-figure(4);
-plot(t, sqrt(y_out(:, 1).^2 + y_out(:, 2).^2 + y_out(:, 3).^2));
-xlabel('Time [s]');
-ylabel('Radius [m]');
-title('Radius vs Time');
-
+monte_carlo = 0;
+if monte_carlo
+    stop_time = 60;
+    cn_beta = [10, 5, 1, 0.5, 0.2];
+%     cL_alpha = [3, 4, 5, 6, 7];
+%     cD_alpha = [0.05, 0.1, 0.2, 0.3, 0.4];
+%     az_bias_vec = [0, 1, 3, 6, 10]*pi/180;
+%     el_bias_vec = [0, 1, 3, 6, 10]*pi/180;
+    for i = 1:1
+        wing1.Coefficients.Table.Beta(6)=cn_beta(i);
+%         wing1.Coefficients.Table.Alpha(3)=cL_alpha(i);
+%         wing1.Coefficients.Table.Alpha(1)=cD_alpha(i);
+%         az_bias = az_bias_vec(i);
+%         el_bias = el_bias_vec(i);
+        out = sim('aero_gen.slx');
+        log_idx = find(out.state.time > 35);
+        xyz = out.state.signals.values(log_idx, 1:3);
+        plot3(xyz(:, 1), -xyz(:, 2), -xyz(:, 3), 'LineWidth',3);
+        title("Flight Path")
+        xlabel("X [m]");
+        ylabel("Y [m]");
+        zlabel("Z [m]");
+        hold on;
+        axis equal;
+        drawnow;
+    end
+%     legend("Cn-beta="+num2str(cn_beta(1)),"Cn-beta="+num2str(cn_beta(2)), "Cn-beta="+num2str(cn_beta(3)), "Cn-beta="+num2str(cn_beta(4)), "Cn-beta="+num2str(cn_beta(5)))
+%     legend("CL-alpha="+num2str(cL_alpha(1)),"CL-alpha="+num2str(cL_alpha(2)), "CL-alpha="+num2str(cL_alpha(3)), "CL-alpha="+num2str(cL_alpha(4)), "CL-alpha="+num2str(cL_alpha(5)))
+%     legend("CD-alpha="+num2str(cD_alpha(1)),"CD-alpha="+num2str(cD_alpha(2)), "CD-alpha="+num2str(cD_alpha(3)), "CD-alpha="+num2str(cD_alpha(4)), "CD-alpha="+num2str(cD_alpha(5)))
+%     az_bias_vec = az_bias_vec*180/pi;legend("AZ Bias="+num2str(az_bias_vec(1)),"AZ Bias="+num2str(az_bias_vec(2)), "AZ Bias="+num2str(az_bias_vec(3)), "AZ Bias="+num2str(az_bias_vec(4)), "AZ Bias="+num2str(az_bias_vec(5)));
+%     el_bias_vec = el_bias_vec*180/pi;legend("EL Bias="+num2str(el_bias_vec(1)),"EL Bias="+num2str(el_bias_vec(2)), "EL Bias="+num2str(el_bias_vec(3)), "EL Bias="+num2str(el_bias_vec(4)), "EL Bias="+num2str(el_bias_vec(5)));
+end
