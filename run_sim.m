@@ -16,8 +16,10 @@ ac1_moments = 1;
 gravity = [0 , 0, 9.81];
 rho = 1.225;
 k_line = 100;
+CD_tether = 1;
 d =80;
-WindVelocity = [4, 0, 0];%[12, 0, 0]
+S_tether = d*0.001;
+WindVelocity = [5, 0, 0];%[12, 0, 0]
 
 %% Aircraft Parameters
 roll_moment_1 = 0;
@@ -30,7 +32,7 @@ k_roll = 500;%100
 k_pitch = 1000;%1000
 
 %% Control Law Parameters
-trg_el = 30;
+trg_el = 40;
 trg_az = 45;
 motor_kv = 30;
 motor_kt = 60/(2*pi*motor_kv);
